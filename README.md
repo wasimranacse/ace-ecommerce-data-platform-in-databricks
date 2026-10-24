@@ -12,6 +12,7 @@ An end-to-end medallion data platform on Databricks — from raw CSV ingestion t
 6. [Gold Layer](#gold-layer)
 7. [Key Metrics](#key-metrics)
 8. [How to Run](#how-to-run)
+9. [Pipeline Orchestration](#pipeline-orchestration)
 
 ---
 
@@ -140,6 +141,23 @@ Execute notebooks in order. Steps 2–4 are independent and can run in any seque
 All notebooks use `mode('overwrite')` with `overwriteSchema` where needed — fully idempotent and safe to re-run.
 
 **Prerequisites:** Databricks workspace with Unity Catalog, source CSVs in the volume, and PySpark compute.
+
+## Pipeline Orchestration
+
+The pipeline is automated as a multi-task Databricks job — **ACE Lakehouse Medallion Pipeline** — linked to this GitHub repository on the `main` branch.
+
+**Schedule:** Daily at 06:00 (Europe/London) — failure alerts emailed automatically.
+
+**Task dependency graph:**
+
+```
+Bronze_Layer
+    ├── Silver_Category_Data ─┐
+    ├── Silver_Orders_Data ───┤
+    └── Silver_Revenue_Data ──┴── Gold_Layer
+```
+
+Bronze runs first; all three Silver tasks run in parallel once Bronze succeeds; Gold runs only after all three Silver tasks complete.
 
 ## Unity Catalog Schema
 
