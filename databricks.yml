@@ -1,0 +1,27 @@
+# Declarative Automation Bundle for the ACE E-Commerce Data Platform
+# Bundle root is this Git repository root. Validates on PR and deploys to the
+# production target on every push to main via GitHub Actions (.github/workflows/deploy.yml).
+
+bundle:
+  name: ace_lakehouse_2026
+
+include:
+  - resources/*.yml
+
+targets:
+  # Developer sandbox: jobs are prefixed with [dev <user>] and the schedule
+  # is paused so local deploys never fire the 06:00 daily run.
+  dev:
+    default: true
+    mode: development
+    resources:
+      jobs:
+        ace_lakehouse_medallion_pipeline:
+          schedule:
+            pause_status: PAUSED
+
+  # Production: deployed automatically by GitHub Actions on push to main.
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/wasimranadts@gmail.com/.bundle/${bundle.name}/${bundle.target}

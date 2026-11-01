@@ -51,6 +51,12 @@ All source files are read with `header=True`, `inferSchema=True`, and multi-line
 ```
 ace-ecommerce-data-platform-in-databricks/
 ├── README.md
+├── databricks.yml                                  # Declarative Automation Bundle config (dev/prod)
+├── resources/
+│   └── ace_lakehouse_medallion_pipeline.job.yml    # Medallion job defined as code
+├── .github/
+│   └── workflows/
+│       └── deploy.yml                              # CI/CD: validate on PR, deploy prod on push
 └── ace_lakehouse_2026/
     ├── Bronze/
     │   └── Bronze_Layer.ipynb          # Ingests 3 source CSVs into Bronze tables
@@ -161,6 +167,26 @@ Bronze_Layer
 ```
 
 Bronze runs first; all three Silver tasks run in parallel once Bronze succeeds; Gold runs only after all three Silver tasks complete.
+
+## CI/CD
+
+The platform is deployed as code with a **Declarative Automation Bundle (DAB)** rooted at the repository root — GitHub is the single source of truth, and the workspace is deployed to rather than hand-edited.
+
+- `databricks.yml` — bundle configuration with two targets: `dev` (jobs prefixed `[dev <user>]`, schedule paused for safe local deploys) and `prod` (live schedule)
+- `resources/ace_lakehouse_medallion_pipeline.job.yml` — the medallion pipeline as code: tasks, dependencies, 06:00 schedule, and failure alerts
+- `.github/workflows/deploy.yml` — GitHub Actions pipeline
+
+| Event | Pipeline action |
+| --- | --- |
+| Pull request to `main` | Strict bundle validation (config, notebook paths, dependencies) |
+| Push to `main` | Strict validation → automatic production deploy |
+
+**Required GitHub repository secrets** (Settings → Secrets and variables → Actions):
+
+- `DATABRICKS_HOST` — e.g. `https://dbc-xxxx.cloud.databricks.com`
+- `DATABRICKS_TOKEN` — a Databricks personal access token
+
+After the first production deploy, the bundle-managed `ACE Lakehouse Medallion Pipeline` job (UI-locked, marked `deployment.kind: BUNDLE`) becomes the live job.
 
 ## Unity Catalog Schema
 

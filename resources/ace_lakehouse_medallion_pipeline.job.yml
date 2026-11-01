@@ -1,0 +1,71 @@
+resources:
+  jobs:
+    ace_lakehouse_medallion_pipeline:
+      name: 'ACE Lakehouse Medallion Pipeline'
+      email_notifications:
+        on_failure:
+          - wasimranadts@gmail.com
+      schedule:
+        quartz_cron_expression: '0 0 6 * * ?'
+        timezone_id: 'Europe/London'
+        pause_status: UNPAUSED
+      max_concurrent_runs: 1
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
+      tasks:
+        - task_key: bronze_layer
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ../ace_lakehouse_2026/Bronze/Bronze_Layer.ipynb
+            source: WORKSPACE
+          timeout_seconds: 0
+          email_notifications: {}
+          webhook_notifications: {}
+          disabled: false
+        - task_key: silver_category
+          depends_on:
+            - task_key: bronze_layer
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ../ace_lakehouse_2026/Silver/Silver_Category_Data.ipynb
+            source: WORKSPACE
+          timeout_seconds: 0
+          email_notifications: {}
+          webhook_notifications: {}
+          disabled: false
+        - task_key: silver_orders
+          depends_on:
+            - task_key: bronze_layer
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ../ace_lakehouse_2026/Silver/Silver_Orders_Data.ipynb
+            source: WORKSPACE
+          timeout_seconds: 0
+          email_notifications: {}
+          webhook_notifications: {}
+          disabled: false
+        - task_key: silver_revenue
+          depends_on:
+            - task_key: bronze_layer
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ../ace_lakehouse_2026/Silver/Silver_Revenue_Data.ipynb
+            source: WORKSPACE
+          timeout_seconds: 0
+          email_notifications: {}
+          webhook_notifications: {}
+          disabled: false
+        - task_key: gold_layer
+          depends_on:
+            - task_key: silver_orders
+            - task_key: silver_category
+            - task_key: silver_revenue
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ../ace_lakehouse_2026/Gold/Gold_Layer.ipynb
+            source: WORKSPACE
+          timeout_seconds: 0
+          email_notifications: {}
+          webhook_notifications: {}
+          disabled: false

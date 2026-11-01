@@ -1,0 +1,42 @@
+name: Databricks CI/CD
+
+# CI/CD for the ACE E-Commerce Data Platform Declarative Automation Bundle:
+# - Pull requests: validate the bundle (config, paths, dependencies) only.
+# - Push to main: validate, then deploy the production target to Databricks.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  validate:
+    name: Validate bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate (prod target)
+        run: databricks bundle validate --strict --target prod
+
+  deploy-prod:
+    name: Deploy production
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Deploy to production
+        run: databricks bundle deploy --target prod
