@@ -52,11 +52,14 @@ All source files are read with `header=True`, `inferSchema=True`, and multi-line
 ace-ecommerce-data-platform-in-databricks/
 ├── README.md
 └── ace_lakehouse_2026/
-    ├── Bronze_Layer.ipynb          # Ingests 3 source CSVs into Bronze tables
-    ├── Silver_Orders_Data.ipynb    # Cleans and enriches order-level data
-    ├── Silver_Category_Data.ipynb  # Cleans category-level data
-    ├── Silver_Revenue_Data.ipynb   # Cleans daily revenue data
-    └── Gold_Layer.ipynb            # Builds business-ready gold tables
+    ├── Bronze/
+    │   └── Bronze_Layer.ipynb          # Ingests 3 source CSVs into Bronze tables
+    ├── Silver/
+    │   ├── Silver_Orders_Data.ipynb    # Cleans and enriches order-level data
+    │   ├── Silver_Category_Data.ipynb  # Cleans category-level data
+    │   └── Silver_Revenue_Data.ipynb   # Cleans daily revenue data
+    └── Gold/
+        └── Gold_Layer.ipynb            # Builds business-ready gold tables
 ```
 
 Notebooks must be executed in the order shown above, as each layer depends on the one beneath it.
@@ -65,7 +68,7 @@ Notebooks must be executed in the order shown above, as each layer depends on th
 
 ## Bronze Layer
 
-**Notebook:** `Bronze_Layer.ipynb`
+**Notebook:** `Bronze/Bronze_Layer.ipynb`
 
 The Bronze layer ingests the three source CSVs into Unity Catalog with minimal transformation — only column-name cleaning is applied to ensure valid table field names.
 
@@ -92,15 +95,15 @@ Three notebooks, each cleaning one bronze source and embedding four business-ins
 
 | Notebook | Source → Output | Key Transformations |
 | --- | --- | --- |
-| `Silver_Orders_Data.ipynb` | `bronze.orders_data` → `silver.silver_orders_data` (1,577 rows) | Date to `yyyy-mm-dd`; split revenue into amount + savings; proper-case text; decode HTML entities; derive coupon amounts from codes; snake-case columns |
-| `Silver_Category_Data.ipynb` | `bronze.categories_data` → `silver.silver_categories_data` (238 rows) | Trim category names; near-duplicates consolidated in Gold |
-| `Silver_Revenue_Data.ipynb` | `bronze.revenue_data` → `silver.silver_revenue_data` (1,097 rows) | Date to `yyyy-mm-dd`; strip stray apostrophes from string money columns; cast to `double` |
+| `Silver/Silver_Orders_Data.ipynb` | `bronze.orders_data` → `silver.silver_orders_data` (1,577 rows) | Date to `yyyy-mm-dd`; split revenue into amount + savings; proper-case text; decode HTML entities; derive coupon amounts from codes; snake-case columns |
+| `Silver/Silver_Category_Data.ipynb` | `bronze.categories_data` → `silver.silver_categories_data` (238 rows) | Trim category names; near-duplicates consolidated in Gold |
+| `Silver/Silver_Revenue_Data.ipynb` | `bronze.revenue_data` → `silver.silver_revenue_data` (1,097 rows) | Date to `yyyy-mm-dd`; strip stray apostrophes from string money columns; cast to `double` |
 
 ---
 
 ## Gold Layer
 
-**Notebook:** `Gold_Layer.ipynb`
+**Notebook:** `Gold/Gold_Layer.ipynb`
 
 Builds three business-ready tables from the silver layer, then reconciles each against its source to prove no data was lost or duplicated.
 
@@ -132,11 +135,11 @@ Builds three business-ready tables from the silver layer, then reconciles each a
 
 Execute notebooks in order. Steps 2–4 are independent and can run in any sequence after Step 1.
 
-1. `Bronze_Layer.ipynb` — ingest source CSVs
-2. `Silver_Orders_Data.ipynb` — clean order data
-3. `Silver_Category_Data.ipynb` — clean category data
-4. `Silver_Revenue_Data.ipynb` — clean revenue data
-5. `Gold_Layer.ipynb` — build gold tables and reconcile
+1. `Bronze/Bronze_Layer.ipynb` — ingest source CSVs
+2. `Silver/Silver_Orders_Data.ipynb` — clean order data
+3. `Silver/Silver_Category_Data.ipynb` — clean category data
+4. `Silver/Silver_Revenue_Data.ipynb` — clean revenue data
+5. `Gold/Gold_Layer.ipynb` — build gold tables and reconcile
 
 All notebooks use `mode('overwrite')` with `overwriteSchema` where needed — fully idempotent and safe to re-run.
 
